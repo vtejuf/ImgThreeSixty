@@ -27,8 +27,8 @@ function ImgThreeSixty(){
 	var func = window.ImgThreeSixty;
 
 	var ImgThreeSixty = {
-		root: '.',
-		pro_name: '',
+		imgPath: '.',
+
 		imgsTotal: 48,
 		imgsLoaded: 0,
 
@@ -59,7 +59,7 @@ function ImgThreeSixty(){
 			render: function(){}
 		},
 
-		init: function(pro_name, dom){
+		init: function(){
 			if(this.inited){
 				return;
 			}
@@ -67,12 +67,11 @@ function ImgThreeSixty(){
 
 			var scope = this;
 
-			this.pro_name = pro_name;
-			this.container = dom;
+			var dom = this.container;
 
 			var scene = document.createElement("div");
 			scene.className = 'imgthreesixty-scene';
-			scene.setAttribute('style','width:100%;height:100%;background-size: contain; background-repeat: no-repeat;');
+			scene.setAttribute('style','width:100%;height:100%;background-size: contain; background-repeat: no-repeat;background-position: center;');
 			this.scene = scene;
 
 			var imgcache = document.createElement("div");
@@ -82,7 +81,7 @@ function ImgThreeSixty(){
 
 			this._execEvent('beforeLoad');
 
-			this.loadImgs(pro_name, imgcache);
+			this.loadImgs( imgcache );
 
 			this.initRender(dom);
 
@@ -98,7 +97,7 @@ function ImgThreeSixty(){
 
 					scope._execEvent('afterLoad');
 
-					scope._initRotate(scene, pro_name);
+					scope._initRotate(scene);
 
 					scope.changeImg(1);
 
@@ -134,7 +133,7 @@ function ImgThreeSixty(){
 			};
 		},
 
-		loadImgs: function(pro_name, imgcache){
+		loadImgs: function( imgcache ){
 			var scope = this;
 
 			for(var i = 0; i < this.imgsTotal; i++){
@@ -146,14 +145,14 @@ function ImgThreeSixty(){
 					scope._execEvent('progress', {total: scope.imgsTotal, loaded: scope.imgsLoaded});
 				};
 
-				img.src = this.root + '/' + pro_name + '/0_' + i + '.jpg';
+				img.src = this.imgPath + '/0_' + i + '.jpg';
 				imgcache.appendChild(img);
 			}
 		},
 
 		animate: function(){
 			this.stop();
-			func.instance = this.Render;
+			func.instance = this;
 			func.animate();
 		},
 
@@ -181,7 +180,7 @@ function ImgThreeSixty(){
 			this.Render.times = 0;
 		},
 
-		_initRotate: function(scene, pro_name){
+		_initRotate: function(scene){
 			var scope = this;
 
 			//触摸开始事件
@@ -222,7 +221,7 @@ function ImgThreeSixty(){
 		changeImg : function (pos){
 			this.imgIndex += pos + this.imgsTotal;
 			this.imgIndex %= this.imgsTotal;
-			this.scene.style.backgroundImage = 'url('+this.root + '/' + this.pro_name + '/0_' + this.imgIndex + '.jpg';+')';
+			this.scene.style.backgroundImage = 'url('+this.imgPath + '/0_' + this.imgIndex + '.jpg';+')';
 		},
 
 		_execEvent: function(){
@@ -269,7 +268,7 @@ ImgThreeSixty.animate = function(){
 		ImgThreeSixty.xAnimate();
 		return ;
 	}
-	ImgThreeSixty.instance.render();
+	ImgThreeSixty.instance.Render.render();
 	ImgThreeSixty.animateId = requestAnimationFrame(ImgThreeSixty.animate);
 };
 ImgThreeSixty.xAnimate = function(){
