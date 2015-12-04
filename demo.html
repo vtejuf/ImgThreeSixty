@@ -1,0 +1,78 @@
+<html>
+	<head>
+		<script src='./jquery.min.js'></script>
+		<script src='./ImgThreeSixty.js'></script>
+		<script src='./jquery.reel-min.js'></script>
+
+		<style>
+
+			*{-moz-user-select: none;}
+		</style>
+	</head>
+	
+	<body>
+		
+		<div id="box" style='width: 100%;'>
+			    <!-- <img src="./0_0.jpg" class="reel" data-steppable='1' data-responsive='1' data-delay="1" data-speed="-0.2" data-throwable="1.2" data-images="./0_#.jpg|0..47"> -->
+		</div>
+
+		<script>
+		var asj = ImgThreeSixty();
+
+		asj.on('beforeLoad', function(){
+			console.log('beforeLoad')
+		});
+
+		asj.on('afterLoad', function(){
+			console.log('afterLoad')
+		});
+
+		asj.on('progress', function(){
+			// console.log(arguments)
+		});
+		asj.on('autoRotate', function(){
+			if(asj.imgIndex == asj.imgsTotal-1){
+				asj.autoRotate = false;
+			}
+		});
+
+		asj.autoRotate = true;
+		asj.init( 'shoe', window.box );
+
+		$('#box')
+		.on('touchstart', function(){
+			asj.autoRotate = false;
+		})
+		.on('touchend',function(){
+			// asj.autoRotate = true;
+		});
+
+		// asj.animate();
+
+		// setTimeout(function(){
+		// 	console.log('stop')
+		// 	asj.xAnimate();
+		// },3000);
+
+		// setTimeout(function(){
+		// 	console.log('run')
+		// 	asj.animate();
+		// },6000);
+
+		// function go(){
+		// 	asj.Render.render();
+		// 	requestAnimationFrame(go);
+		// }
+
+		// go()
+
+		// asj.left();
+		// var ASJ = imgRotatoInit('','0','box');
+		// ASJ.left();
+		// setTimeout(function(){
+		// 	ASJ.stop();
+		// },3000);
+		</script>
+	</body>
+
+</html>
