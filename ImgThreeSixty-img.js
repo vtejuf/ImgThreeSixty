@@ -43,15 +43,7 @@ function ImgThreeSixty(){
 
 		inited: false, //一个实例只能调用1次init
 
-		ctx: null,
-		drawPos:{
-			x:0,
-			y:0,
-			w:0,
-			y:0
-		},
 		imgIndex: 0, //当前图片索引
-		imgCacheList: {},
 
 		/**
 		 * 渲染器
@@ -77,11 +69,10 @@ function ImgThreeSixty(){
 
 			var dom = this.container;
 
-			var scene = document.createElement("canvas");
+			var scene = document.createElement("div");
 			scene.className = 'imgthreesixty-scene';
-			scene.setAttribute('style','background-color: transparent;position: relative;top: 50%;margin-top: -50%;');
+			scene.setAttribute('style','width:100%;height:100%;background-size: contain; background-repeat: no-repeat;background-position: center;');
 			this.scene = scene;
-			this.ctx = scene.getContext('2d');
 
 			var imgcache = document.createElement("div");
 			imgcache.className = 'imgthreesixty-imgcache';
@@ -92,8 +83,6 @@ function ImgThreeSixty(){
 
 			this.loadImgs( imgcache );
 
-
-
 			this.initRender(dom);
 
 			this.autoRotateSpeed = this.autoRotateSpeed<0? 0: Number(this.autoRotateSpeed);
@@ -102,8 +91,6 @@ function ImgThreeSixty(){
 			loadTimeid = setInterval(function(){
 				if(this.imgsLoaded == this.imgsTotal){
 					clearInterval(loadTimeid);
-
-					scope.conutPos(dom);
 
 					dom.appendChild(scene);
 					dom.appendChild(imgcache);
@@ -159,28 +146,8 @@ function ImgThreeSixty(){
 				};
 
 				img.src = this.imgPath + '/0_' + i + '.jpg';
-				this.imgCacheList[i] = img;
-				// imgcache.appendChild(img);
+				imgcache.appendChild(img);
 			}
-		},
-
-		conutPos: function(dom){
-			var img = this.imgCacheList[0];
-
-			var hwRate = img.naturalHeight/img.naturalWidth;
-
-			var w = $(dom).width(),
-				h = w*hwRate;
-
-			this.drawPos = {
-				x: 0,
-				y: 0,
-				w: w,
-				h: h
-			};
-
-			this.scene.setAttribute('width',w);
-			this.scene.setAttribute('height',h);
 		},
 
 		animate: function(){
@@ -254,14 +221,7 @@ function ImgThreeSixty(){
 		changeImg : function (pos){
 			this.imgIndex += pos + this.imgsTotal;
 			this.imgIndex %= this.imgsTotal;
-
-			var img = this.imgCacheList[this.imgIndex];
-
-			// console.log(this.drawPos)
-			this.ctx.drawImage(img, this.drawPos.x, this.drawPos.y, this.drawPos.w, this.drawPos.h);
-
-			// var url = 'url('+this.imgPath + '/0_' + this.imgIndex + '.jpg';+')';
-			// this.scene.style.backgroundImage = url
+			this.scene.style.backgroundImage = 'url('+this.imgPath + '/0_' + this.imgIndex + '.jpg';+')';
 		},
 
 		_execEvent: function(){
