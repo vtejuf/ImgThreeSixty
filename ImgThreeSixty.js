@@ -79,18 +79,19 @@ function ImgThreeSixty(){
 
 			var scene = document.createElement("canvas");
 			scene.className = 'imgthreesixty-scene';
-			scene.setAttribute('style','background-color: transparent;position: relative;top: 50%;margin-top: -50%;');
+			scene.setAttribute('style','background-color: transparent;position: relative;');
 			this.scene = scene;
 			this.ctx = scene.getContext('2d');
 
-			var imgcache = document.createElement("div");
-			imgcache.className = 'imgthreesixty-imgcache';
-			imgcache.setAttribute('style','display:none');
-			this.imgcache = imgcache;
+			// var imgcache = document.createElement("div");
+			// imgcache.className = 'imgthreesixty-imgcache';
+			// imgcache.setAttribute('style','display:none');
+			// this.imgcache = imgcache;
 
 			this._execEvent('beforeLoad');
 
-			this.loadImgs( imgcache );
+			this.loadImgs();
+			// this.loadImgs( /*imgcache*/ );
 
 
 
@@ -106,7 +107,7 @@ function ImgThreeSixty(){
 					scope.conutPos(dom);
 
 					dom.appendChild(scene);
-					dom.appendChild(imgcache);
+					// dom.appendChild(imgcache);
 
 					scope._execEvent('afterLoad');
 
@@ -146,7 +147,7 @@ function ImgThreeSixty(){
 			};
 		},
 
-		loadImgs: function( imgcache ){
+		loadImgs: function( /*imgcache*/ ){
 			var scope = this;
 
 			for(var i = 0; i < this.imgsTotal; i++){
@@ -165,22 +166,26 @@ function ImgThreeSixty(){
 		},
 
 		conutPos: function(dom){
+
+			var $container = $(dom);
+			this.scene.setAttribute('width',$container.width());
+			this.scene.setAttribute('height',$container.height());
+
 			var img = this.imgCacheList[0];
 
 			var hwRate = img.naturalHeight/img.naturalWidth;
 
 			var w = $(dom).width(),
-				h = w*hwRate;
+				h = w*hwRate,
+				y = (this.scene.height-h)/2;
 
 			this.drawPos = {
 				x: 0,
-				y: 0,
+				y: y,
 				w: w,
 				h: h
 			};
 
-			this.scene.setAttribute('width',w);
-			this.scene.setAttribute('height',h);
 		},
 
 		animate: function(){
@@ -257,7 +262,7 @@ function ImgThreeSixty(){
 
 			var img = this.imgCacheList[this.imgIndex];
 
-			// console.log(this.drawPos)
+			this.ctx.clearRect(0, 0, this.container.width, this.container.height);
 			this.ctx.drawImage(img, this.drawPos.x, this.drawPos.y, this.drawPos.w, this.drawPos.h);
 
 			// var url = 'url('+this.imgPath + '/0_' + this.imgIndex + '.jpg';+')';
