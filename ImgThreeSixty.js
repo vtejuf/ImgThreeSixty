@@ -29,7 +29,7 @@ function ImgThreeSixty(){
 	var ImgThreeSixty = {
 		imgPath: '.',
 
-		imgsTotal: 48,
+		imgsTotal: (typeof uri !='undefined' && uri.params.imgnum)?Number(uri.params.imgnum):24,
 		imgsLoaded: 0,
 
 		container: null,
@@ -37,9 +37,11 @@ function ImgThreeSixty(){
 		imgcache: null, //图片缓存dom
 
 		autoRotate: false,// l || r || false
-		autoRotateSpeed: 0.4, //自转速度 0 ~ 1 超出1就没意义了
+		autoRotateSpeed: 0.1, //自转速度 0 ~ 1 超出1就没意义了
 
 		_rotateSpeed: 1, //在容器上滑动的距离 = 图片循环的次数，默认：1 容器的宽度 = 图片loop 1次，影响Render.range
+
+		panSpeed: 1, //平移速度 单位px
 
 		inited: false, //一个实例只能调用1次init
 
@@ -50,6 +52,7 @@ function ImgThreeSixty(){
 			w:0,
 			y:0
 		},
+		natruePos : {},
 		imgIndex: 0, //当前图片索引
 		imgCacheList: {},
 
@@ -63,6 +66,8 @@ function ImgThreeSixty(){
 			pos:1,
 			times:0,
 			id:0,
+
+			type: 'rotate',
 
 			render: function(){}
 		},
@@ -101,7 +106,7 @@ function ImgThreeSixty(){
 
 			var loadTimeid = 0;
 			loadTimeid = setInterval(function(){
-				if(this.imgsLoaded == this.imgsTotal){
+				if(scope.imgsLoaded == scope.imgsTotal){
 					clearInterval(loadTimeid);
 
 					scope.conutPos(dom);
@@ -113,7 +118,7 @@ function ImgThreeSixty(){
 
 					scope._initRotate(scene);
 
-					scope.changeImg(1);
+					// scope.changeImg(0);
 
 					if(scope.autoRotate){
 						scope.animate();
@@ -142,7 +147,12 @@ function ImgThreeSixty(){
 					return;
 				}
 
-				scope.changeImg(this.pos);
+				if(this.type == 'rotate'){
+					scope.changeImg(this.pos);
+				}else if(this.type == 'pan'){
+					scope.drawImg();
+				}
+
 				this.times--;
 			};
 		},
@@ -168,23 +178,50 @@ function ImgThreeSixty(){
 		conutPos: function(dom){
 
 			var $container = $(dom);
-			this.scene.setAttribute('width',$container.width());
-			this.scene.setAttribute('height',$container.height());
+			var sw = $container.width(),
+				sh = $container.height();
+
+			this.scene.setAttribute('width',sw);
+			this.scene.setAttribute('height',sh);
 
 			var img = this.imgCacheList[0];
 
 			var hwRate = img.naturalHeight/img.naturalWidth;
 
-			var w = $(dom).width(),
-				h = w*hwRate,
-				y = (this.scene.height-h)/2;
+			var x = y = w = h = 0;
+			if(hwRate < sh/sw){
+				//宽度铺满，高度居中
+				x=0;
+				w=sw;
+				h=hwRate*w;
+				y=(sh-h)/2;
+			}else{
+				//高度铺满，宽度居中
+				y=0;
+				h=sh;
+				w=h/hwRate;
+				x=(sw-w)/2;
+			}
 
 			this.drawPos = {
-				x: 0,
+				x: x,
 				y: y,
 				w: w,
 				h: h
 			};
+
+			for(var i in this.drawPos){
+				this.natruePos[i] = this.drawPos[i];
+			}
+
+		},
+
+		zoom: function(v){
+			//v = 1 原始尺寸
+
+			for(var i in this.drawPos){
+				this.drawPos[i]
+			}
 
 		},
 
@@ -222,11 +259,18 @@ function ImgThreeSixty(){
 			var scope = this;
 
 			//触摸开始事件
-			var x1,x3;
+			var x1,y1;
+
+			var panRange={w:0,h:0};
 			scene.addEventListener('touchstart',function(e){
 				e.preventDefault();
 				x1=e.changedTouches[0].pageX;
+				y1=e.changedTouches[0].pageY;
 				scope.Render.record = 1;
+				scope.Render.times = 0;
+
+				panRange.w = (scope.drawPos.w-scope.scene.width)>0?(scope.drawPos.w-scope.scene.width)/scope.scene.width:0;
+				panRange.h = (scope.drawPos.h-scope.scene.height)>0? (scope.drawPos.h-scope.scene.height)/scope.scene.height:0;
 			 });
 			
 			//触摸结束事件
@@ -235,43 +279,105 @@ function ImgThreeSixty(){
 			});
 			//滑动事件		
 			scene.addEventListener('touchmove',function(e){
-				var x2a= e.changedTouches[0].pageX;
-				var dis = ~~( x2a - x1 ),
-					disAbs = Math.abs(dis);
 
-				var pos = dis/disAbs;
+				if(e.changedTouches.length == 1){
+
+					if(scope.Render.type == 'rotate'){
+
+						var x2a= e.changedTouches[0].pageX;
+						var dis = ~~( x2a - x1 ),
+							disAbs = Math.abs(dis);
+
+						var pos = dis/disAbs;
 
 
-				if(pos != scope.Render.pos){
-					scope.Render.pos *= -1;
-					scope.Render.times = 0;
-				}
+						if(pos != scope.Render.pos){
+							scope.Render.pos *= -1;
+							scope.Render.times = 0;
+						}
 
-				if(disAbs >= scope.Render.range){
-					scope.Render.times += ~~(disAbs/scope.Render.range);
-					x1 = x2a;
+						if(disAbs >= scope.Render.range){
+							scope.Render.times += ~~(disAbs/scope.Render.range);
+							x1 = x2a;
+						}
+
+					}else if(scope.Render.type=='pan'){
+						var x2a= e.changedTouches[0].pageX,
+							y2a= e.changedTouches[0].pageY;
+
+						var disx = ~~( x2a - x1 ),
+							disy = ~~( y2a - y1 );
+
+							scope.drawPos.x += panRange.w * disx * scope.panSpeed;
+							scope.drawPos.y += panRange.h * disy * scope.panSpeed;
+
+							scope.Render.times = 1;
+
+							//border
+							if(scope.drawPos.x >= 0){
+								scope.drawPos.x = 0;
+							}else if(scope.drawPos.x <= scope.scene.width - scope.drawPos.w){
+								scope.drawPos.x = scope.scene.width - scope.drawPos.w;
+							}
+							if(scope.drawPos.y >= 0){
+								scope.drawPos.y = 0;
+							}else if(scope.drawPos.y <= scope.scene.height - scope.drawPos.h){
+								scope.drawPos.y = scope.scene.height - scope.drawPos.h;
+							}
+
+							x1 = x2a;
+							y1 = y2a;
+
+					}
+
 				}
 
 			});
 
 		},
+
+		zoom: function(v){
+			if(v==1){
+				this.drawPos.w = this.natruePos.w;
+				this.drawPos.h = this.natruePos.h;
+				this.drawPos.x = this.natruePos.x;
+				this.drawPos.y = this.natruePos.y;
+			}else{
+				this._zoomCenter(v);
+				this.drawPos.w = this.drawPos.w*v;
+				this.drawPos.h = this.drawPos.h*v;
+			}
+			this.changeImg(this.Render.pos);
+		},
+		_zoomCenter: function(v){
+			this.drawPos.x += this.natruePos.w*(1-v)/2;
+			this.drawPos.y += this.natruePos.h*(1-v)/2;
+		},
+
 			//切换图片
 		changeImg : function (pos){
+			pos = pos || this.Render.pos;
+
 			this.imgIndex += pos + this.imgsTotal;
 			this.imgIndex %= this.imgsTotal;
 
-			var img = this.imgCacheList[this.imgIndex];
-
-			this.ctx.clearRect(0, 0, this.container.width, this.container.height);
-			this.ctx.drawImage(img, this.drawPos.x, this.drawPos.y, this.drawPos.w, this.drawPos.h);
+			this.drawImg();
 
 			// var url = 'url('+this.imgPath + '/0_' + this.imgIndex + '.jpg';+')';
 			// this.scene.style.backgroundImage = url
 		},
 
+		drawImg: function(){
+			var img = this.imgCacheList[this.imgIndex];
+
+			this.ctx.clearRect(0, 0, this.scene.width, this.scene.height);
+
+			this.ctx.drawImage(img, this.drawPos.x, this.drawPos.y, this.drawPos.w, this.drawPos.h);
+		},
+
 		_execEvent: function(){
             var args = arguments;
-            etype = Array.prototype.shift.call(args);
+            var etype = Array.prototype.shift.call(args);
             this._events[etype].forEach(function(func){
                 try{
                     setTimeout(function(){
