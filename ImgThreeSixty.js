@@ -90,17 +90,9 @@ function ImgThreeSixty(){
 			this.scene = scene;
 			this.ctx = scene.getContext('2d');
 
-			// var imgcache = document.createElement("div");
-			// imgcache.className = 'imgthreesixty-imgcache';
-			// imgcache.setAttribute('style','display:none');
-			// this.imgcache = imgcache;
-
 			this._execEvent('beforeLoad');
 
 			this.loadImgs();
-			// this.loadImgs( /*imgcache*/ );
-
-
 
 			this.initRender(dom);
 
@@ -114,13 +106,10 @@ function ImgThreeSixty(){
 					scope.conutPos(dom);
 
 					dom.appendChild(scene);
-					// dom.appendChild(imgcache);
 
 					scope._execEvent('afterLoad');
 
 					scope._initRotate(scene);
-
-					// scope.changeImg(0);
 
 					if(scope.autoRotate){
 						scope.animate();
@@ -173,7 +162,6 @@ function ImgThreeSixty(){
 
 				img.src = this.imgPath + '/0_' + i + '.jpg';
 				this.imgCacheList[i] = img;
-				// imgcache.appendChild(img);
 			}
 		},
 
@@ -182,6 +170,9 @@ function ImgThreeSixty(){
 			var $container = $(dom);
 			var sw = $container.width(),
 				sh = $container.height();
+
+			//设备像素率，防止锯齿
+			devicePixelRatio = devicePixelRatio || 1;
 
 			this.scene.setAttribute('width',sw*devicePixelRatio);
 			this.scene.setAttribute('height',sh*devicePixelRatio);
@@ -213,6 +204,7 @@ function ImgThreeSixty(){
 			// 	x=(sw-w)/2;
 			// }
 
+			//宽度铺满 高度居中
 			this.drawPos = {
 				x: x | 0,
 				y: y | 0,
@@ -408,54 +400,9 @@ function ImgThreeSixty(){
 			this.imgIndex %= this.imgsTotal;
 
 			this.drawImg();
-
-			// var url = 'url('+this.imgPath + '/0_' + this.imgIndex + '.jpg';+')';
-			// this.scene.style.backgroundImage = url
 		},
 
-		// antialiasing: function(){
-		// 	var v = $('[name="viewport"]'),
-		// 		c = $('[name="viewport"]').attr('content');
-
-		// 	v.attr('content',c.replace('width=device-width, initial-scale=1,',''));
-		// },
-
 		drawImg: function(ispress){
-			// var steps = Math.ceil(Math.log(this.imgCacheList[0].naturalWidth / this.drawPos.w) / Math.log(2))-1;
-
-			// var img = this.imgCacheList[this.imgIndex];
-
-			// this.ctx.clearRect(0, 0, this.scene.width, this.scene.height);
-			// if(steps){
-			// 	var oc   = document.createElement('canvas'),
-			// 	    octx = oc.getContext('2d');
-
-			// 	oc.width  = img.width  * 0.5;
-			// 	oc.height = img.height * 0.5;
-
-			// 	octx.drawImage(img, 0, 0, oc.width, oc.height);
-			// 	octx.drawImage(oc, 0, 0, oc.width * 0.5, oc.height * 0.5);
-
-			// 	this.ctx.drawImage(oc, 0,0, oc.width * 0.5, oc.height * 0.5, this.drawPos.x, this.drawPos.y, this.drawPos.w, this.drawPos.h);
-			// }else{
-			// 	this.ctx.drawImage(img, this.drawPos.x, this.drawPos.y, this.drawPos.w, this.drawPos.h);
-			// }
-
-			// var img = this.imgCacheList[this.imgIndex];
-
-			// var bh = document.createElement("Canvas");
-			// bh.width = this.drawPos.w;
-			// bh.height = this.drawPos.h;
-			
-			// var aU = bh.getContext("2d");
-
-			// this.ctx.clearRect(0, 0, this.scene.width, this.scene.height);
-
-			// aU.drawImage(img, 0, 0, bh.width, bh.height);
-			// this.ctx.drawImage(bh, x, y, this.drawPos.w, this.drawPos.h);
-
-
-
 
 			var img = this.imgCacheList[this.imgIndex];
 
