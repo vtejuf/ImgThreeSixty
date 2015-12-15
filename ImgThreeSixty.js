@@ -41,7 +41,7 @@ function ImgThreeSixty(){
 
 		_rotateSpeed: 1, //在容器上滑动的距离 = 图片循环的次数，默认：1 容器的宽度 = 图片loop 1次，影响Render.range
 
-		panSpeed: 1, //平移速度 单位px
+		panSpeed: 1.2, //平移速度 单位px
 
 		inited: false, //一个实例只能调用1次init
 
@@ -56,7 +56,10 @@ function ImgThreeSixty(){
 		imgIndex: 0, //当前图片索引
 		imgCacheList: {},
 
-		_zoom: 1,
+		pinchstart:[],
+
+		_zoom: 0,
+		zoomRange: [1,4],
 
 		/**
 		 * 渲染器
@@ -91,6 +94,8 @@ function ImgThreeSixty(){
 			this.ctx = scene.getContext('2d');
 
 			this._execEvent('beforeLoad');
+
+			this._zoom = scope.zoomRange[0];
 
 			this.loadImgs();
 
@@ -264,13 +269,17 @@ function ImgThreeSixty(){
 
 		_initRotate: function(scene){
 			var scope = this;
+			var hammer;
 
 			    //放大
-			var hammer = new Hammer(scope.container);
+			hammer = new Hammer(scope.container);
+
 			hammer.get('pinch').set({ enable: true });
 
 			hammer
 			.on('panstart', function(ev){
+
+				scope.panSpeed = (scope.zoomRange[1]+1-scope._zoom)*1.2;
 
 			    hammer.session.x1=ev.changedPointers[0].pageX;
 			    hammer.session.y1=ev.changedPointers[0].pageY;
@@ -314,16 +323,7 @@ function ImgThreeSixty(){
 			            scope.Render.times = 1;
 
 			            //border
-			            if(scope.drawPos.x >= 0){
-			                scope.drawPos.x = 0;
-			            }else if(scope.drawPos.x <= scope.scene.width - scope.drawPos.w){
-			                scope.drawPos.x = scope.scene.width - scope.drawPos.w;
-			            }
-			            if(scope.drawPos.y >= 0){
-			                scope.drawPos.y = 0;
-			            }else if(scope.drawPos.y <= scope.scene.height - scope.drawPos.h){
-			                scope.drawPos.y = scope.scene.height - scope.drawPos.h;
-			            }
+			            scope._checkBorder();
 
 			            hammer.session.x1 = x2a;
 			            hammer.session.y1 = y2a;
@@ -336,29 +336,33 @@ function ImgThreeSixty(){
 			})
 			.on('doubletap', function(ev) {
 			    if(scope.Render.type=='rotate'){
+			   		scope.pinchstart = [scope.drawPos.x - (scope.scene.width - scope.drawPos.w)/2, scope.drawPos.y - (scope.scene.height - scope.drawPos.h)/2];
 			        scope.Render.type = 'pan';
-			        scope.zoom(3);
+			        scope.zoom(scope.zoomRange[1]);
 			    }else{
 			        scope.Render.type = 'rotate';
-			        scope.zoom(1);
+			        scope.zoom(scope.zoomRange[0]);
 			    }
 			})
-			.on('pinch', function(ev){
+			.on('pinchstart', function(ev){
+			    scope.pinchstart = [scope.drawPos.x - (scope.scene.width - scope.drawPos.w)/2, scope.drawPos.y - (scope.scene.height - scope.drawPos.h)/2];
+			})
+			.on('pinchmove', function(ev){
 
 			    var zn = scope.getZoom(),
-			        z = zn + (~~(ev.scale*10))/20 - 0.5;
+			        z = zn + (~~(ev.scale*100))/1000 - 0.1;
 
-			    if(z > 3){
-			        z = 3;
-			    }else if( z < 1){
-			        z = 1;
+			    if(z > scope.zoomRange[1]){
+			        z = scope.zoomRange[1];
+			    }else if( z < scope.zoomRange[0]){
+			        z = scope.zoomRange[0];
 			    }
 
 			    if(z == zn){
 			        return;
 			    }
 
-			    if(z > 1){
+			    if(z > scope.zoomRange[0]){
 			        scope.Render.type = 'pan';
 			    }else{
 			        scope.Render.type = 'rotate';
@@ -371,7 +375,7 @@ function ImgThreeSixty(){
 
 		zoom: function(v){
 			this._zoom = v;
-			if(v==1){
+			if(v==this.zoomRange[0]){
 				this.drawPos.w = this.natruePos.w;
 				this.drawPos.h = this.natruePos.h;
 				this.drawPos.x = this.natruePos.x;
@@ -388,8 +392,23 @@ function ImgThreeSixty(){
 			return this._zoom;
 		},
 		_zoomCenter: function(v){
-			this.drawPos.x = (this.scene.width - this.drawPos.w)/2;
-			this.drawPos.y = (this.scene.height - this.drawPos.h)/2;
+			this.drawPos.x = (this.scene.width - this.drawPos.w)/2 + this.pinchstart[0];
+			this.drawPos.y = (this.scene.height - this.drawPos.h)/2 + this.pinchstart[1];
+            this._checkBorder();
+		},
+
+		_checkBorder: function(){
+			//border
+            if(this.drawPos.x >= 0){
+                this.drawPos.x = 0;
+            }else if(this.drawPos.x <= this.scene.width - this.drawPos.w){
+                this.drawPos.x = this.scene.width - this.drawPos.w;
+            }
+            if(this.drawPos.y >= 0){
+                this.drawPos.y = 0;
+            }else if(this.drawPos.y <= this.scene.height - this.drawPos.h){
+                this.drawPos.y = this.scene.height - this.drawPos.h;
+            }
 		},
 
 			//切换图片
